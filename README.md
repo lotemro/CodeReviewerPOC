@@ -91,12 +91,12 @@ pytest
 ```
 
 ## Manual Testing & Utilities
-The `scripts/` directory contains tools for manual verification:
-- `scripts/parallelism_test.py`: Verifies concurrency limits by sending 10 simultaneous requests.
-- `scripts/bulk_runner.py`: Submits all Python files in `scripts/sample_files` for review in batches.
+The `tests/scripts/` directory contains tools for manual verification:
+- `tests/scripts/parallelism_test.py`: Verifies concurrency limits by sending 10 simultaneous requests.
+- `tests/scripts/bulk_runner.py`: Submits all Python files in `tests/scripts/sample_files` for review in batches.
 
 To use these, first start the application, then run:
 ```bash
-python scripts/parallelism_test.py
-python scripts/bulk_runner.py
+python tests/scripts/parallelism_test.py
+python tests/scripts/bulk_runner.py
 ```
