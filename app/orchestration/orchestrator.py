@@ -40,24 +40,19 @@ class ScanOrchestrator:
                 results=json.loads(cached_scan.results_json) if cached_scan.results_json else None
             ), False
 
-        # 2. Check Capacity (Atomic-like reservation)
+        # 2. Check and Acquire Capacity
         if not self.concurrency_controller.try_acquire():
-            # In a real async app, we'd want to be careful about the race between 
-            # try_acquire and the actual background task starting.
-            # For this POC, we'll acquire it BEFORE creating the pending record.
             raise CapacityReachedException("Maximum parallel scans reached")
 
-        # 3. Reserve Slot
-        await self.concurrency_controller.acquire()
-        
-        # 4. Create Pending Record
+        # 3. Create Pending Record
         scan_id = str(uuid.uuid4())
         scan_create = ScanCreate(id=scan_id, file_hash=file_hash, status=ScanStatus.PENDING)
         await self.repository.create_scan(scan_create)
 
-        # 5. Launch Background Task
-        # We don't await this, as it's an async background task
-        asyncio.create_task(self._run_scan_background(scan_id, code))
+        # 4. Launch Background Task
+        # We register the task with the controller to prevent garbage collection
+        task = asyncio.create_task(self._run_scan_background(scan_id, code))
+        self.concurrency_controller.register_task(task)
 
         return ScanResponse(id=scan_id, status=ScanStatus.PENDING), True
 

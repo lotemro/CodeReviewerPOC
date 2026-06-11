@@ -45,7 +45,7 @@ async def test_request_scan_capacity_reached(mock_repo, mock_engine, concurrency
     mock_repo.get_completed_scan_by_hash.return_value = None
     
     # Manually lock the semaphore
-    await concurrency_controller.acquire()
+    assert concurrency_controller.try_acquire() is True
     
     with pytest.raises(CapacityReachedException):
         await orchestrator.request_scan("code")
