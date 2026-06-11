@@ -60,24 +60,32 @@ class ScanOrchestrator:
         return ScanResponse(id=scan_id, status=ScanStatus.PENDING), True
 
     async def _run_scan_background(self, scan_id: str, code: str):
-        try:
-            await self.repository.update_scan_status(scan_id, ScanStatus.RUNNING)
-            
-            results = await self.engine.review_code(code)
-            
-            await self.repository.update_scan_status(
-                scan_id, 
-                ScanStatus.COMPLETED, 
-                results_json=json.dumps(results)
-            )
-        except Exception as e:
-            await self.repository.update_scan_status(
-                scan_id, 
-                ScanStatus.FAILED, 
-                error_message=str(e)
-            )
-        finally:
-            self.concurrency_controller.release()
+        # Background tasks need their own DB connection to avoid closure by request scope
+        import aiosqlite
+        from aiosqlite import connect
+        from app.core.config import settings
+
+        async with connect(settings.DB_PATH) as db:
+            db.row_factory = aiosqlite.Row
+            repo = ScanRepository(db)
+            try:
+                await repo.update_scan_status(scan_id, ScanStatus.RUNNING)
+
+                results = await self.engine.review_code(code)
+
+                await repo.update_scan_status(
+                    scan_id, 
+                    ScanStatus.COMPLETED, 
+                    results_json=json.dumps(results)
+                )
+            except Exception as e:
+                await repo.update_scan_status(
+                    scan_id, 
+                    ScanStatus.FAILED, 
+                    error_message=str(e)
+                )
+            finally:
+                self.concurrency_controller.release()
 
     async def get_scan_result(self, scan_id: str) -> Optional[ScanResponse]:
         scan = await self.repository.get_scan_by_id(scan_id)
