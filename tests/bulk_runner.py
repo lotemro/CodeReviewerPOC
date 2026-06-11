@@ -41,16 +41,23 @@ async def main():
         print(f"No .py files found in {SAMPLES_DIR}")
         return
 
-    print(f"Starting bulk scan for {len(files)} files...")
+    batch_size = 5
+    print(f"Starting bulk scan for {len(files)} files (Batch size: {batch_size})...")
     
+    all_results = []
     async with httpx.AsyncClient(timeout=60.0) as client:
-        tasks = [run_single_scan(client, f) for f in files]
-        results = await asyncio.gather(*tasks)
+        for i in range(0, len(files), batch_size):
+            batch = files[i:i + batch_size]
+            print(f"\n--- Starting Batch {i//batch_size + 1} ({len(batch)} files) ---")
+            
+            tasks = [run_single_scan(client, f) for f in batch]
+            batch_results = await asyncio.gather(*tasks)
+            all_results.extend(batch_results)
 
     print("\n" + "="*50)
     print("FINAL BULK SCAN RESULTS")
     print("="*50)
-    for filename, status, review in results:
+    for filename, status, review in all_results:
         print(f"File: {filename}")
         print(f"  Status: {status}")
         if review:
