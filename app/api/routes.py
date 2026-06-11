@@ -4,7 +4,7 @@ from app.orchestration.orchestrator import ScanOrchestrator, CapacityReachedExce
 from app.db.database import get_db
 from app.db.repository import ScanRepository
 from app.reviewer.engine import ReviewerEngine
-from app.llm.ollama_client import OllamaClient
+from app.llm.factory import get_llm_client
 from app.orchestration.concurrency import ConcurrencyController
 import aiosqlite
 
@@ -12,12 +12,25 @@ router = APIRouter()
 
 # Global instances (in a larger app, these would be managed by a DI container or lifespan)
 concurrency_controller = ConcurrencyController()
-llm_client = OllamaClient()
+llm_client = get_llm_client()
 engine = ReviewerEngine(llm_client)
 
-async def get_orchestrator(db: aiosqlite.Connection = Depends(get_db)) -> ScanOrchestrator:
+# Dependencies
+def get_concurrency_controller() -> ConcurrencyController:
+    # In a real app, this might be stored in app.state
+    # For now, we keep it as a singleton at the module level but access via dependency
+    return concurrency_controller
+
+def get_engine() -> ReviewerEngine:
+    return engine
+
+async def get_orchestrator(
+    db: aiosqlite.Connection = Depends(get_db),
+    engine: ReviewerEngine = Depends(get_engine),
+    cc: ConcurrencyController = Depends(get_concurrency_controller)
+) -> ScanOrchestrator:
     repository = ScanRepository(db)
-    return ScanOrchestrator(repository, engine, concurrency_controller)
+    return ScanOrchestrator(repository, engine, cc)
 
 @router.post("/scans", response_model=ScanResponse, status_code=202)
 async def request_scan(

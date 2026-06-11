@@ -7,6 +7,7 @@ class Settings(BaseSettings):
     DEBUG: bool = False
     
     # LLM Settings
+    LLM_PROVIDER: str = "ollama"  # Options: "ollama", "mock" (can add "openai" later)
     OLLAMA_URL: str = "http://localhost:11434"
     OLLAMA_MODEL: str = "llama3"
     

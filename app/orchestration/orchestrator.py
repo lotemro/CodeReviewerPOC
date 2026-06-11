@@ -2,11 +2,13 @@ import hashlib
 import uuid
 import json
 import asyncio
+import aiosqlite
 from typing import Optional, Tuple
 from app.db.repository import ScanRepository
 from app.db.models import ScanCreate, ScanInDB, ScanStatus, ScanResponse
 from app.reviewer.engine import ReviewerEngine
 from app.orchestration.concurrency import ConcurrencyController
+from app.core.config import settings
 
 class ScanOrchestrator:
     def __init__(
@@ -61,11 +63,7 @@ class ScanOrchestrator:
 
     async def _run_scan_background(self, scan_id: str, code: str):
         # Background tasks need their own DB connection to avoid closure by request scope
-        import aiosqlite
-        from aiosqlite import connect
-        from app.core.config import settings
-
-        async with connect(settings.DB_PATH) as db:
+        async with aiosqlite.connect(settings.DB_PATH) as db:
             db.row_factory = aiosqlite.Row
             repo = ScanRepository(db)
             try:

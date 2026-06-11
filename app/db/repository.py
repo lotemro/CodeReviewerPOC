@@ -1,7 +1,7 @@
 import aiosqlite
 import json
 from typing import Optional, List
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from app.db.models import ScanInDB, ScanStatus, ScanCreate
 
 class ScanRepository:
@@ -56,6 +56,6 @@ class ScanRepository:
 
     async def delete_old_scans(self, hours: int):
         # SQLite CURRENT_TIMESTAMP is UTC
-        cutoff = (datetime.utcnow() - timedelta(hours=hours)).strftime('%Y-%m-%d %H:%M:%S')
+        cutoff = (datetime.now(timezone.utc) - timedelta(hours=hours)).strftime('%Y-%m-%d %H:%M:%S')
         await self.db.execute("DELETE FROM scans WHERE created_at < ?", (cutoff,))
         await self.db.commit()

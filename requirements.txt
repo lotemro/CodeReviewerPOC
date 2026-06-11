@@ -3,6 +3,7 @@ uvicorn[standard]
 pydantic-settings
 aiosqlite
 httpx
+respx
 pytest
 pytest-asyncio
 python-multipart

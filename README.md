@@ -45,7 +45,11 @@ Start the FastAPI server:
 ```bash
 python -m app.main
 ```
-The server will run at `http://localhost:8000`.
+Alternatively, for development with auto-reload:
+```bash
+uvicorn app.main:app --reload
+```
+The server will run at `http://localhost:8000`. You can access the interactive API documentation at `http://localhost:8000/docs`.
 
 ## API Usage Examples
 
@@ -81,6 +85,15 @@ curl http://localhost:8000/scans/{id}
 ## Running Tests
 Run the full test suite (unit and integration tests):
 ```bash
-export PYTHONPATH=$PYTHONPATH:.
 pytest
+```
+
+## Manual Testing & Utilities
+The `scripts/` directory contains tools for manual verification:
+- `scripts/parallelism_test.py`: Verifies concurrency limits by sending 10 simultaneous requests.
+- `scripts/bulk_runner.py`: Submits all Python files in `scripts/sample_files` for review in batches.
+
+To use these, first start the application, then run:
+```bash
+python scripts/parallelism_test.py
 ```
