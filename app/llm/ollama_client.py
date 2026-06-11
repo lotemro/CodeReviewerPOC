@@ -4,8 +4,8 @@ from app.core.config import settings
 
 class OllamaClient(BaseLLMClient):
     def __init__(self, base_url: str = None, model: str = None):
-        self.base_url = base_url or settings.OLLAMA_URL
-        self.model = model or settings.OLLAMA_MODEL
+        self.base_url = base_url or settings.LLM_URL
+        self.model = model or settings.LLM_NAME
         self.generate_url = f"{self.base_url}/api/generate"
 
     async def generate(self, prompt: str) -> str:

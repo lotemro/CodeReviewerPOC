@@ -34,10 +34,12 @@ The project is built with **FastAPI** and **aiosqlite**. It follows a modular de
    ```bash
    pip install -r requirements.txt
    ```
-4. Create a `.env` file (optional, see `.env.example`):
+4. Create a `.env` file with the following required parameters:
    ```bash
-   OLLAMA_URL="http://localhost:11434"
-   OLLAMA_MODEL="llama3"
+   LLM_PROVIDER=ollama
+   LLM_URL=http://localhost:11434
+   LLM_NAME=llama3
+   DB_PATH=code_review.db
    ```
 
 ## Running the Application

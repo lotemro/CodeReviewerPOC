@@ -1,25 +1,18 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pathlib import Path
 
 class Settings(BaseSettings):
-    # API Settings
-    PROJECT_NAME: str = "Code Review Platform POC"
-    DEBUG: bool = False
+    # Required in .env
+    LLM_PROVIDER: str
+    LLM_URL: str
+    LLM_NAME: str
+    DB_PATH: str
     
-    # LLM Settings
-    LLM_PROVIDER: str = "ollama"  # Options: "ollama", "mock" (can add "openai" later)
-    OLLAMA_URL: str = "http://localhost:11434"
-    OLLAMA_MODEL: str = "llama3"
-    
-    # Database Settings
-    DB_PATH: str = "code_review.db"
-    
-    # Concurrency Settings
+    # Internal defaults
     MAX_PARALLEL_SCANS: int = 5
-    
-    # TTL Settings (in hours)
     SCAN_TTL_HOURS: int = 24
-    
+    PROJECT_NAME: str = "Code Review Platform POC"
+    DEBUG: bool = True
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 settings = Settings()
