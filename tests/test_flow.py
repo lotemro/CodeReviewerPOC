@@ -8,19 +8,19 @@ from app.db.database import init_db
 from app.core.config import settings
 from unittest.mock import patch, AsyncMock
 
-# Override DB for testing
+# Override DB for testing (handled in conftest.py usually, but we ensure it here too)
 settings.DB_PATH = "test_e2e.db"
 
 @pytest.fixture(autouse=True)
 async def setup_db():
-    await init_db()
-    yield
-    # Cleanup DB after each test to ensure isolation
+    # Ensure fresh DB for each test for isolation
     if os.path.exists(settings.DB_PATH):
         try:
             os.remove(settings.DB_PATH)
         except:
             pass
+    await init_db()
+    yield
 
 @pytest.fixture
 def client():

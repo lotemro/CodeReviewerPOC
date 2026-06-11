@@ -18,14 +18,13 @@ async def lifespan(app: FastAPI):
     await init_db()
     
     # Initialize repository for lifecycle tasks
-    # We use a direct connection here as we are outside the request context
     from aiosqlite import connect
     async with connect(settings.DB_PATH) as db:
         repo = ScanRepository(db)
         await run_recovery(repo)
     
     # Start cleanup loop in background
-    cleanup_task = asyncio.create_task(cleanup_loop(ScanRepository(await connect(settings.DB_PATH))))
+    cleanup_task = asyncio.create_task(cleanup_loop())
     
     yield
     
