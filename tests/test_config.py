@@ -12,4 +12,4 @@ def test_env_override(monkeypatch):
     # We need to re-instantiate or reload settings if we want to test monkeypatching
     # for pydantic-settings in the same process if it was already imported.
     # For simplicity in this POC test, we just check that the settings object exists.
-    assert hasattr(settings, "OLLAMA_URL")
+    assert hasattr(settings, "LLM_URL")
