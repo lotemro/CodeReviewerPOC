@@ -11,7 +11,6 @@ class Settings(BaseSettings):
     MAX_PARALLEL_SCANS: int = 5
     SCAN_TTL_HOURS: int = 24
     PROJECT_NAME: str = "Code Review Platform POC"
-    DEBUG: bool = True
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
