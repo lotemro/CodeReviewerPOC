@@ -39,6 +39,11 @@
     <h2>Tests & Results</h2>
     <p><strong>Test Suite</strong>: <code>tests/test_engine.py</code></p>
     <div class="test-result">
+        <strong>Detailed Test Explanation</strong>:
+        <ul>
+            <li><code>test_review_code_success</code>: Verifies the core engine workflow. It mocks the LLM client using <code>AsyncMock</code> to return specific "TRUE" and "FALSE" strings. The test confirms that the engine correctly maps these responses to boolean values in the final results dictionary and calls the LLM for each defined rule.</li>
+            <li><code>test_review_code_parse_error</code>: Ensures the engine is robust against unexpected LLM output. It mocks the LLM to return an unparseable string ("Maybe?"). The test verifies that the engine raises a <code>ValueError</code> with a descriptive message, preventing silent failures or incorrect data from entering the database.</li>
+        </ul>
         <strong>Result</strong>: All 2 tests passed successfully.
         <pre>
 platform darwin -- Python 3.11.3, pytest-9.0.3, pluggy-1.6.0
