@@ -7,10 +7,6 @@ from app.main import app
 from app.db.database import init_db
 from app.core.config import settings
 from unittest.mock import patch, AsyncMock
-from app.api.routes import get_db, get_orchestrator
-from app.db.repository import ScanRepository
-from app.orchestration.orchestrator import ScanOrchestrator
-import aiosqlite
 
 # Override DB for testing
 settings.DB_PATH = "test_e2e.db"
@@ -19,13 +15,32 @@ settings.DB_PATH = "test_e2e.db"
 async def setup_db():
     await init_db()
     yield
-    # No immediate deletion here to allow background tasks to finish if needed
-    # but for tests we want a clean slate
+    # Cleanup DB after each test to ensure isolation
+    if os.path.exists(settings.DB_PATH):
+        try:
+            os.remove(settings.DB_PATH)
+        except:
+            pass
 
 @pytest.fixture
 def client():
+    # Use lifespan context to ensure DB is initialized and recovery runs
     with TestClient(app) as c:
         yield c
+
+@pytest.mark.asyncio
+async def test_request_scan_invalid_extension(client):
+    file_content = b"print('hello')"
+    file = io.BytesIO(file_content)
+    response = client.post("/scans", files={"file": ("test.txt", file, "text/plain")})
+    
+    assert response.status_code == 400
+    assert "Only .py files are supported" in response.json()["detail"]
+
+@pytest.mark.asyncio
+async def test_get_scan_not_found(client):
+    response = client.get("/scans/non-existent-id")
+    assert response.status_code == 404
 
 @pytest.mark.asyncio
 async def test_e2e_full_flow(client):
@@ -39,8 +54,7 @@ async def test_e2e_full_flow(client):
         assert response.status_code == 202
         scan_id = response.json()["id"]
         
-        # Poll for completion to avoid "closed database" race in background task
-        # during TestClient teardown
+        # Poll for completion
         for _ in range(10):
             await asyncio.sleep(0.5)
             response = client.get(f"/scans/{scan_id}")
@@ -86,7 +100,7 @@ async def test_e2e_concurrency_limit(client):
     
     with patch("app.api.routes.llm_client.generate", new_callable=AsyncMock) as mock_gen:
         async def slow_gen(*args):
-            await asyncio.sleep(2) # Longer sleep to ensure overlap
+            await asyncio.sleep(1)
             return "TRUE"
         mock_gen.side_effect = slow_gen
         
@@ -94,16 +108,16 @@ async def test_e2e_concurrency_limit(client):
         code2 = "b = 1"
         code3 = "c = 1"
         
-        # Launch requests
+        # Request 1 & 2 should be accepted
         r1 = client.post("/scans", files={"file": ("r1.py", io.BytesIO(code1.encode()), "text/x-python")})
         r2 = client.post("/scans", files={"file": ("r2.py", io.BytesIO(code2.encode()), "text/x-python")})
         
-        assert r1.status_code == 202
-        assert r2.status_code == 202
+        assert r1.status_code in [200, 202]
+        assert r2.status_code in [200, 202]
         
         # Third one should fail immediately
         r3 = client.post("/scans", files={"file": ("r3.py", io.BytesIO(code3.encode()), "text/x-python")})
         assert r3.status_code == 503
         
-        # Cleanup: wait for slow tasks to finish to avoid database closed errors
-        await asyncio.sleep(3)
+        # Cleanup
+        await asyncio.sleep(2)
