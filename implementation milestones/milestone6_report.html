@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Milestone 6 Report - API & Lifecycle</title>
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 20px; }
+        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        h2 { color: #2980b9; margin-top: 30px; }
+        .task-list { list-style-type: none; padding: 0; }
+        .task-item { background: #f4f4f4; margin-bottom: 10px; padding: 10px; border-radius: 5px; border-left: 5px solid #3498db; }
+        .task-item.completed { border-left-color: #27ae60; }
+        .status-badge { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 0.8em; font-weight: bold; text-transform: uppercase; }
+        .status-completed { background-color: #2ecc71; color: white; }
+        pre { background: #2c3e50; color: #ecf0f1; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        .test-result { background: #e8f6ef; border: 1px solid #27ae60; padding: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Milestone 6: API Layer & Lifecycle Handling</h1>
+    
+    <h2>Completed Tasks</h2>
+    <ul class="task-list">
+        <li class="task-item completed">
+            <span class="status-badge status-completed">Completed</span>
+            <strong>FastAPI Application</strong>: Created <code>app/main.py</code> with full lifecycle management using <code>lifespan</code>.
+        </li>
+        <li class="task-item completed">
+            <span class="status-badge status-completed">Completed</span>
+            <strong>HTTP Routes</strong>: Implemented <code>app/api/routes.py</code> with <code>POST /scans</code> and <code>GET /scans/{id}</code>, ensuring correct status codes and cache-hit behavior.
+        </li>
+        <li class="task-item completed">
+            <span class="status-badge status-completed">Completed</span>
+            <strong>Lifecycle Management</strong>: Developed <code>app/orchestration/lifecycle.py</code> featuring startup recovery and a periodic 24-hour TTL cleanup loop.
+        </li>
+    </ul>
+
+    <h2>Tests & Results</h2>
+    <p><strong>Test Suite</strong>: <code>tests/test_api.py</code></p>
+    <div class="test-result">
+        <strong>Detailed Test Explanation</strong>:
+        <ul>
+            <li><code>test_request_scan_invalid_extension</code>: Verifies the API's input validation. It attempts to upload a non-Python file (<code>.txt</code>) and confirms that the API rejects it with a <code>400 Bad Request</code> and a helpful error message.</li>
+            <li><code>test_get_scan_not_found</code>: Ensures the API correctly handles requests for non-existent scan IDs. It verifies that the system returns a <code>404 Not Found</code> when a random UUID is requested.</li>
+        </ul>
+        <strong>Result</strong>: All 2 tests passed successfully.
+        <pre>
+platform darwin -- Python 3.11.3, pytest-9.0.3, pluggy-1.6.0
+rootdir: /Users/lotem/PycharmProjects/CodeReviewerPOC
+collected 2 items                                                                                                                                                                              
+
+tests/test_api.py ..                                         [100%]
+====================== 2 passed in 0.30s ======================
+        </pre>
+    </div>
+
+    <h2>Conclusion</h2>
+    <p>The API layer and background maintenance tasks are fully operational. The application successfully manages its lifecycle from startup to data cleanup. Proceeding to end-to-end integration tests.</p>
+</body>
+</html>
